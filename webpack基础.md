@@ -30,6 +30,10 @@
 
 - devServer
 - resolve 配置文件别名
+  - extensions 省略文件后缀，尝试按顺序解析这些后缀名
+  - mainFiles: ['index'] 解析文件目录时默认文件名
+  - mainFields 默认 npm 导入模块时按照哪个字段导入
+  - alias import 和 require 引入时的别名
 
 ### css 样式解析
 
@@ -179,6 +183,29 @@ plugins: [new optimizeCss()];
 
 ```
 
+#### 区分环境
+
+使用`webpack-merge`合并配置
+
+```javascript
+const { merge } = require("webpack-merge");
+const BaseConfig = require("./webpack.config.base.js");
+const developmentConfig = require("./webpack.config.dev.js");
+const productionConfig = require("./webpack.config.prod.js");
+
+module.exports = (env) => {
+  console.log(env);
+  if (env === "dev") {
+    return merge([BaseConfig, developmentConfig]);
+  } else {
+    return merge([BaseConfig, productionConfig]);
+  }
+};
+
+// "dev": "npx webpack --env dev",
+// "test": "npx webpack --env test"
+```
+
 #### source-map 配置 [文档](https://www.webpackjs.com/configuration/devtool/)
 
 增加源码映射,方便代码出现问题， 进行调试和问题查找
@@ -205,12 +232,42 @@ watchOptions: {
 
 `webpack-dev-serve`中`proxy`, 配置相关的开发跨域
 
+- `webpack-dev-serve`中已经存在`express`模块可以使用`express`配合 proxy 模拟数据
+
+  ```javascript
+  // server
+  const express = require("express");
+  const app = express();
+  app.get("/api/user", (req, res) => {
+    res.json({ name: "跨域测试" });
+  });
+  app.listen(3000);
+
+  // webpack.config.js
+    proxy: {
+      "/api": "http://localhost:3000"
+    }
+
+  ```
+
+- before
+  ```javascript
+   before(app, server, compiler) {
+     app.get("/api/user", (req, res) => {
+        res.json({ name: "跨域测试" });
+      });
+    }
+  ```
+
 #### 配置编译时的全局变量
 
 `webpack.DefinePlugin`
 
 ```javascript
-
+new webpack.DefinePlugin({
+  // DEV: 'dev' , // 如果书写成单个引号， 会解析成变量
+  DEV: JSON.stringify("dev"),
+});
 ```
 
 #### 常用插件

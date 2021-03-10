@@ -13,12 +13,14 @@
     "html-webpack-plugin": "^4.5.0",
     "webpack": "^4.43.2",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^5.7.3"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "webpack-dev-server",
-    "build": "npx webpack"
+    "build": "npx webpack --config ./webpack.config.base.js",
+    "dev": "npx webpack --env dev",
+    "test": "npx webpack --env test"
   },
   "author": "",
   "license": "ISC"
