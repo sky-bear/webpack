@@ -1,7 +1,7 @@
 module.exports = {
-  mode: "production",
+  mode: "development",
   devtool: "source-map",
-  deServer: {
+  devServer: {
     port: 8080,
     open: true,
     hot: true,

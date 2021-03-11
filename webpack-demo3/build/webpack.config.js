@@ -5,9 +5,9 @@ const productionConfig = require("./webpack.config.prod.js");
 
 module.exports = (env) => {
   console.log(env);
-  if (env === "dev") {
-    return merge([BaseConfig, developmentConfig]);
-  } else {
+  if (env === "prod") {
     return merge([BaseConfig, productionConfig]);
+  } else {
+    return merge([BaseConfig, developmentConfig]);
   }
 };

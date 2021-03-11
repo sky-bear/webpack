@@ -1,6 +1,7 @@
 const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const htmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
 module.exports = {
   entry: "./src/index.js",
   output: {
@@ -14,6 +15,13 @@ module.exports = {
     },
   },
   plugins: [
+    new webpack.DllReferencePlugin({
+
+    }),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }), // 忽略第三包内部的有引入的文件
     new CleanWebpackPlugin(),
     new htmlWebpackPlugin({
       template: path.resolve(__dirname, "../index.html"),
@@ -21,8 +29,10 @@ module.exports = {
       // chunks: ['home'],
       filename: "index.html",
     }),
+    new
   ],
   module: {
+    noParse: /jquery/, // 不去解析那些任何与给定正则表达式相匹配的文件
     rules: [
       {
         test: /\.m?js$/,
@@ -30,7 +40,7 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            presets: ["@babel/preset-env", "@babel/preset-react"],
           },
         },
       },

@@ -447,3 +447,46 @@ console.log($, window.$, jQuery, window.jQuery)
     },
   }
 ```
+
+#### 优化
+
+- `module`
+
+```javascript
+ module: {
+    noParse: /jquery/, // 不去解析那些任何与给定正则表达式相匹配的文件
+    rules: [
+      {
+        test: /\.m?js$/,
+        exclude: /node_modules/,
+        // include：Path.resolve('src')
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+    ],
+  }
+```
+
+- `module`中配置`noParse`, 不去解析正则匹配的文件， 提高打包速度
+- `exclude`排除所有符合条件的模块
+- `include `引入所有符合条件的模块 【`exclude`和`include`二选其一】
+
+- `plugins`插件
+
+  - `Webpack.IgnorePlugin`忽略第三方包指定目录，让这些指定目录不要被打包进去
+
+  ```javascript
+  // webpack版本不同， 写法不同
+  new Webpack.IgnorePlugin(/\.\/locale/, /moment/), //moment这个库中，如果引用了./locale/目录的内容，就忽略掉，不会打包进去
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }); // 忽略第三包内部的有引入的文件
+
+  //手动引入所需要的语言包
+  import "moment/locale/zh-cn";
+  ```
