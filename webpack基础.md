@@ -452,28 +452,28 @@ console.log($, window.$, jQuery, window.jQuery)
 
 - `module`
 
-```javascript
- module: {
-    noParse: /jquery/, // 不去解析那些任何与给定正则表达式相匹配的文件
-    rules: [
-      {
-        test: /\.m?js$/,
-        exclude: /node_modules/,
-        // include：Path.resolve('src')
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
+  ```javascript
+  module: {
+      noParse: /jquery/, // 不去解析那些任何与给定正则表达式相匹配的文件
+      rules: [
+        {
+          test: /\.m?js$/,
+          exclude: /node_modules/,
+          // include：Path.resolve('src')
+          use: {
+            loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-env"],
+            },
           },
         },
-      },
-    ],
-  }
-```
+      ],
+    }
+  ```
 
-- `module`中配置`noParse`, 不去解析正则匹配的文件， 提高打包速度
-- `exclude`排除所有符合条件的模块
-- `include `引入所有符合条件的模块 【`exclude`和`include`二选其一】
+  - `module`中配置`noParse`, 不去解析正则匹配的文件， 提高打包速度
+  - `exclude`排除所有符合条件的模块
+  - `include `引入所有符合条件的模块 【`exclude`和`include`二选其一】
 
 - `plugins`插件
 
@@ -490,3 +490,85 @@ console.log($, window.$, jQuery, window.jQuery)
   //手动引入所需要的语言包
   import "moment/locale/zh-cn";
   ```
+
+  - 动态链接库 Dll,分割出第三方组件库， 提高打包速度
+
+    - 构建 dll 相关文件配置
+      已 react 为例子`webpack.config.react.js`打包第三方库
+
+    ```javascript
+    const path = require("path");
+    const webpack = require("webpack");
+    const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+    module.exports = {
+      // mode: "development",
+      entry: {
+        react: ["react", "react-dom"],
+      },
+      output: {
+        filename: "_dll_[name].js",
+        path: path.resolve(__dirname, "../dist"),
+        library: "_dll_[name]", // 名称必须一样
+      },
+      plugins: [
+        new CleanWebpackPlugin(),
+        new webpack.DllPlugin({
+          // name === library
+          name: "_dll_[name]", // 名称必须一样
+          path: path.resolve(__dirname, "../dist", "mainfest.json"),
+          context: __dirname, // 必须配置上下文， 避免引入打包后的文件报undefined
+        }),
+      ],
+    };
+    ```
+
+    - 使用 Dll 文件
+
+    ```javascript
+    // webpack.config.base.js
+    new webpack.DllReferencePlugin({
+      manifest: path.resolve(__dirname, "../dist", "mainfest.json"),
+    });
+    // index.html
+    <script src="_dll_react.js"></script>;
+    ```
+
+  - 使用多线程打包 `Happypack`
+
+    ```javascript
+    const Happypack = require("happypack"); // 多线程打包
+    //webpack module rules 配置
+    rules: [
+      {
+        test: /\.m?js$/,
+        exclude: /node_modules/,
+        use: "Happypack/loader?id=js",
+        // use: {
+        //   loader: "babel-loader",
+        //   options: {
+        //     presets: ["@babel/preset-env", "@babel/preset-react"],
+        //   },
+        // },
+      },
+    ];
+
+    // 插件 plugins
+    new Happypack({
+      id: "js",
+      use: [
+        {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-react"],
+          },
+        },
+      ],
+    });
+    ```
+
+- `webpack`自带优化
+
+  - `import`引入，在生产环境下， 会自动去除掉没用的代码 (tree-shaking 把没用的代码自动删除掉)【`require`没有此功能】
+  - scope hosting 作用域提升, 在 webapack 中自动省略一些可以简化的代码
+
+- 多入口文件抽离公共代码

@@ -2,14 +2,11 @@ const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const htmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
+const Happypack = require("happypack"); // 多线程打包
 module.exports = {
-  // entry: "./src/test2/index.js",
-  entry: {
-    index: "./src/test2/index.js",
-    other: "./src/test2/other.js",
-  },
+  entry: "./src/index.js",
   output: {
-    filename: "[name].[hash].js",
+    filename: "main.[hash].js",
     path: path.resolve(__dirname, "../dist"),
   },
   resolve: {
@@ -33,6 +30,17 @@ module.exports = {
       // chunks: ['home'],
       filename: "index.html",
     }),
+    new Happypack({
+      id: "js",
+      use: [
+        {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-react"],
+          },
+        },
+      ],
+    }),
   ],
   module: {
     noParse: /jquery/, // 不去解析那些任何与给定正则表达式相匹配的文件
@@ -40,12 +48,13 @@ module.exports = {
       {
         test: /\.m?js$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env", "@babel/preset-react"],
-          },
-        },
+        use: "Happypack/loader?id=js",
+        // use: {
+        //   loader: "babel-loader",
+        //   options: {
+        //     presets: ["@babel/preset-env", "@babel/preset-react"],
+        //   },
+        // },
       },
     ],
   },
