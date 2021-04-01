@@ -1,4 +1,4 @@
-#### ewebpack
+#### webpack
 
 > webpack 是一个模块打包工具，支持 ES6 Module、Commonjs、CMD、AMD 模块引入方式
 
@@ -572,3 +572,77 @@ console.log($, window.$, jQuery, window.jQuery)
   - scope hosting 作用域提升, 在 webapack 中自动省略一些可以简化的代码
 
 - 多入口文件抽离公共代码
+
+  ```javascript
+   ...
+    entry: {
+      index: "./src/test2/index.js",
+      other: "./src/test2/other.js",
+    },
+    output: {
+      filename: "[name].[hash].js",
+      path: path.resolve(__dirname, "../dist"),
+    },
+    optimization: {
+      splitChunks: {
+        // 分割代码
+        cacheGroups: {
+          // 缓存组
+          commons: {
+            // 抽离代码中的公共模块
+            name: "commons",
+            chunks: "initial", // 入口
+            minChunks: 2, // 引用次数
+            minSize: 0, // 最小大小
+          },
+          vendor: {
+            // 抽离第三包
+            priority: 1, // 增加权重， 有限抽离第三包
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: "vendor",
+            chunks: "all",
+          },
+        },
+      },
+    }
+    ...
+  ```
+
+- 懒加载
+
+  ```javascript
+  const dom = document.createElement("div");
+  dom.innerText = "加载";
+  dom.addEventListener("click", () => {
+    console.log(123);
+    // 利用es6草案， jsonp加载
+    import("./source.js").then((data) => {
+      console.log(data);
+    });
+  });
+
+  document.body.appendChild(dom);
+  ```
+
+- 热更新 只更新局部
+
+  ```javascript
+
+    if (module.hot) {
+      module.hot.accept("./source", () => {
+        console.log("文件更新了");
+        //  此处可以使用require加载文件， 拿到最新的值
+         let data = require('./source')
+      });
+    }
+
+
+  new webpack.HotModuleReplacementPlugin(), // 热更新插件
+
+
+  devServer: {
+    port: 8080,
+    open: true,
+    hot: true, // 开启热更新
+  }
+  ```
